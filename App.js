@@ -1,11 +1,65 @@
-import { StatusBar } from 'expo-status-bar';
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StatusBar } from "expo-status-bar";
+import React, { useEffect, useState } from "react";
+import { StyleSheet, Text, View } from "react-native";
+import * as Location from "expo-location";
+import WeatherInfo from "./components/WeatherInfo";
+import { colors } from "./utils";
+import UnitsPicker from "./components/UnitsPicker";
+
+const WEATHER_API_KEY = "ca85c91614b238aba39cb920f0f8f9df";
+const BASE_WEATHER_URL = "https://api.openweathermap.org/data/2.5/weather?";
 
 export default function App() {
+  const [errorMessage, setErrorMessage] = useState(null);
+  const [currentWeather, setCurrentWeather] = useState(null);
+  const [unitsSystem, setUnitsSystem] = useState("metric");
+
+  async function load() {
+    setCurrentWeather(null);
+    try {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        setErrorMessage("Access to location is needed to run the app");
+        return;
+      }
+      const location = await Location.getCurrentPositionAsync();
+      const { latitude, longitude } = location.coords;
+
+      const weatherUrl = `${BASE_WEATHER_URL}lat=${latitude}&lon=${longitude}&units=${unitsSystem}&appid=${WEATHER_API_KEY}`;
+      const response = await fetch(weatherUrl);
+
+      const result = await response.json();
+      if (!response.ok) {
+        setErrorMessage(result.message);
+        return;
+      }
+      setCurrentWeather(result);
+    } catch (error) {
+      alert(error.message);
+    }
+  }
+
+  useEffect(() => {
+    load();
+  }, [unitsSystem]);
+
+  if (currentWeather) {
+    return (
+      <View style={styles.container}>
+        <StatusBar style="auto" />
+        <View style={styles.main}>
+          <UnitsPicker
+            unitsSystem={unitsSystem}
+            setUnitsSystem={setUnitsSystem}
+          />
+          <WeatherInfo currentWeather={currentWeather} />
+        </View>
+      </View>
+    );
+  }
   return (
     <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
+      <Text>Not able</Text>
       <StatusBar style="auto" />
     </View>
   );
@@ -14,8 +68,11 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: colors.BACKGROUND_COLOR,
+    justifyContent: "center",
+  },
+  main: {
+    justifyContent: "center",
+    flex: 1,
   },
 });
