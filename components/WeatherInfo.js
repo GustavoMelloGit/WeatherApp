@@ -3,7 +3,9 @@ import { Text, View, StyleSheet, Image } from "react-native";
 import { colors } from "../utils";
 
 const { PRIMARY_COLOR, SECONDARY_COLOR } = colors;
-export default function WeatherInfo({ currentWeather }) {
+export default function WeatherInfo({ currentWeather, unitsSystem }) {
+  const unit = unitsSystem === "metric" ? "C" : "F";
+
   const {
     main: { temp },
     weather: [details],
@@ -15,7 +17,9 @@ export default function WeatherInfo({ currentWeather }) {
     <View style={styles.weatherInfo}>
       <Text>{name}</Text>
       <Image style={styles.weatherIcon} source={{ uri: iconURL }} />
-      <Text style={styles.textPrimary}>{temp}</Text>
+      <Text style={styles.textPrimary}>
+        {temp.toFixed(0)}°{unit}
+      </Text>
       <Text style={styles.weatherDescription}>{description}</Text>
       <Text style={styles.textSecondary}>{main}</Text>
     </View>

@@ -1,14 +1,21 @@
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  View,
+  NativeModules,
+} from "react-native";
 import * as Location from "expo-location";
-import WeatherInfo from "./components/WeatherInfo";
+import {
+  ReloadIcon,
+  UnitsPicker,
+  WeatherInfo,
+  WeatherDetails,
+} from "./components";
 import { colors } from "./utils";
-import UnitsPicker from "./components/UnitsPicker";
-
-const WEATHER_API_KEY = "ca85c91614b238aba39cb920f0f8f9df";
-const BASE_WEATHER_URL = "https://api.openweathermap.org/data/2.5/weather?";
-
+import { WEATHER_API_KEY, BASE_WEATHER_URL } from "@env";
 export default function App() {
   const [errorMessage, setErrorMessage] = useState(null);
   const [currentWeather, setCurrentWeather] = useState(null);
@@ -16,6 +23,7 @@ export default function App() {
 
   async function load() {
     setCurrentWeather(null);
+    setErrorMessage(null);
     try {
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
@@ -48,19 +56,39 @@ export default function App() {
       <View style={styles.container}>
         <StatusBar style="auto" />
         <View style={styles.main}>
-          <UnitsPicker
+          <View style={styles.header}>
+            <UnitsPicker
+              unitsSystem={unitsSystem}
+              setUnitsSystem={setUnitsSystem}
+            />
+            <ReloadIcon load={load} />
+          </View>
+          <WeatherInfo
+            currentWeather={currentWeather}
             unitsSystem={unitsSystem}
-            setUnitsSystem={setUnitsSystem}
           />
-          <WeatherInfo currentWeather={currentWeather} />
+          <WeatherDetails
+            currentWeather={currentWeather}
+            unitsSystem={unitsSystem}
+          />
         </View>
+      </View>
+    );
+  } else if (errorMessage) {
+    return (
+      <View style={styles.container}>
+        <ReloadIcon load={load} />
+        <Text>Not able to connect to servers</Text>
+        <StatusBar style="auto" />
       </View>
     );
   }
   return (
-    <View style={styles.container}>
-      <Text>Not able</Text>
+    <View style={styles.main}>
       <StatusBar style="auto" />
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color={colors.PRIMARY_COLOR} />
+      </View>
     </View>
   );
 }
@@ -68,11 +96,24 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.BACKGROUND_COLOR,
+    backgroundColor: "#fff",
     justifyContent: "center",
   },
   main: {
-    justifyContent: "center",
+    justifyContent: "space-between",
     flex: 1,
+    paddingTop: 30,
+  },
+  header: {
+    width: "100%",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+  },
+  centered: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });
