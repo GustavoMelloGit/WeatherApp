@@ -16,6 +16,10 @@ import {
 } from "./components";
 import { colors } from "./utils";
 import { WEATHER_API_KEY, BASE_WEATHER_URL } from "@env";
+import Constants from "expo-constants";
+
+const { statusBarHeight } = Constants;
+
 export default function App() {
   const [errorMessage, setErrorMessage] = useState(null);
   const [currentWeather, setCurrentWeather] = useState(null);
@@ -102,7 +106,7 @@ const styles = StyleSheet.create({
   main: {
     justifyContent: "space-between",
     flex: 1,
-    paddingTop: 30,
+    paddingTop: statusBarHeight,
   },
   header: {
     width: "100%",
